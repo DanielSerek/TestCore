@@ -24,16 +24,14 @@ namespace TestCore.Datalayer
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-//            if (!optionsBuilder.IsConfigured)
+            if (!optionsBuilder.IsConfigured)
             {
-            //IConfigurationRoot configuration = new ConfigurationBuilder()
-            //    .SetBasePath(Directory.GetCurrentDirectory())
-            //    .AddJsonFile("appsettings.Development.json")
-            //    .Build();
-            //var connectionString = configuration.GetConnectionString("DbCoreConnectionString");
-            //optionsBuilder.UseSqlServer(connectionString);
-
-            optionsBuilder.UseSqlServer("Server=DESKTOP-N5L5SUP; initial catalog=TestCore;Persist Security Info=False;User ID=Daniel;Password=pass1234;MultipleActiveResultSets=False;");
+                IConfigurationRoot configuration = new ConfigurationBuilder()
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("appsettings.Development.json")
+                    .Build();
+                var connectionString = configuration.GetSection("AppConfig:DB").Value;
+                optionsBuilder.UseSqlServer(connectionString);
             }
         }
 

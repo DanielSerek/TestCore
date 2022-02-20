@@ -17,34 +17,46 @@ else
 {
 
     <RadzenButton style="margin-bottom: 10px" Text="Přidat novou položku" Click="@InsertRow" Disabled=@(cisAgendaToInsert != null)/>
-    <RadzenDataGrid @ref="agendaGrid" AllowPaging="true" PageSize="10" AllowSorting="true" 
-        Data="@agends" TItem="CisAgenda" ColumnWidth="1300px" RowCreate="@OnCreateRow">
+    <RadzenDataGrid @ref="agendaGrid" AllowPaging="true" PageSize="10" AllowSorting="true" EditMode="DataGridEditMode.Single"
+        Data="@agends" TItem="CisAgenda" ColumnWidth="1300px" RowCreate="@OnCreateRow" RowUpdate="@OnUpdateRow">
         <Columns>
 
-            <RadzenDataGridColumn Title="Popis Agenda" TItem="CisAgenda" Property="PopisAgenda" Width="1000px"> </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title="Popis Agenda" TItem="CisAgenda" Property="PopisAgenda" Width="1000px">
+                 <EditTemplate Context="cisAgenda">
+                    <RadzenTextBox @bind-Value="cisAgenda.PopisAgenda" Style="width:100%; display: block" Name="PopisAgenda" />
+                    <RadzenRequiredValidator Text="Text je vyžadován" Component="PopisAgenda" Popup="true" />              
+                </EditTemplate>                
+            </RadzenDataGridColumn>
 
-            <RadzenDataGridColumn Title="DlouhodobeAn" TItem="CisAgenda" Property="DlouhodobeAn" Width="100px" TextAlign="TextAlign.Center"> </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title="DlouhodobeAn" TItem="CisAgenda" Property="DlouhodobeAn" Width="100px" TextAlign="TextAlign.Center"> 
+                <Template Context="cisAgenda">
+                     <RadzenCheckBox @bind-Value="cisAgenda.DlouhodobeAn" Style="width:100%; display: block" Name="DlouhodobeAn" TValue="bool"/>
+                </Template>
+                <EditTemplate Context="cisAgenda">
+                    <RadzenCheckBox @bind-Value="cisAgenda.DlouhodobeAn" Style="width:100%; display: block" Name="DlouhodobeAn"/>
+                </EditTemplate>
+            </RadzenDataGridColumn>
 
             <RadzenDataGridColumn Title="Upravit" TItem="CisAgenda" Context="sampleBlazorModelsSampleOrder" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="120px">
                 <Template Context="cisAgenda">
-                    <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Class="m-1" Click="@(args => EditRow(cisAgenda))" @onclick:stopPropagation="true">
+                    <RadzenButton Icon="upravit" ButtonStyle="ButtonStyle.Light" Class="m-1" Click="@(args => EditRow(cisAgenda))" @onclick:stopPropagation="true">
                     </RadzenButton>
                 </Template>
                 <EditTemplate Context="cisAgenda">
-                    <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Primary" Class="m-1" Click="@((args) => SaveRow(cisAgenda))">
+                    <RadzenButton Icon="uložit" ButtonStyle="ButtonStyle.Primary" Class="m-1" Click="@((args) => SaveRow(cisAgenda))">
                     </RadzenButton>
-                    <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Class="m-1" Click="@((args) => CancelEdit(cisAgenda))">
+                    <RadzenButton Icon="zavřít" ButtonStyle="ButtonStyle.Light" Class="m-1" Click="@((args) => CancelEdit(cisAgenda))">
                     </RadzenButton>
                 </EditTemplate>
             </RadzenDataGridColumn>
 
             <RadzenDataGridColumn Title="Smazat" TItem="CisAgenda" Context="order" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="60px">
                 <Template Context="cisAgenda">
-                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Size="ButtonSize.Small" Class="m-1" Click="@(args => DeleteRow(cisAgenda))"  @onclick:stopPropagation="true">
+                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="smazat" Size="ButtonSize.Small" Class="m-1" Click="@(args => DeleteRow(cisAgenda))"  @onclick:stopPropagation="true">
                     </RadzenButton>
                 </Template>
                 <EditTemplate Context="cisAgenda">
-                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Size="ButtonSize.Small" Class="m-1" Click="@(args => DeleteRow(cisAgenda))">
+                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="smazat" Size="ButtonSize.Small" Class="m-1" Click="@(args => DeleteRow(cisAgenda))">
                     </RadzenButton>
                 </EditTemplate>
             </RadzenDataGridColumn>
