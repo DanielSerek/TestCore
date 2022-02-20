@@ -1,0 +1,142 @@
+﻿@page "/agenda"
+@using TestCore.Models
+@using TestCore.Datalayer
+@using Microsoft.EntityFrameworkCore
+@inject CisAgendaService cisAgendaService
+@inject DBContext dbContext
+<h3>CisAgenda</h3>
+
+<br />
+
+<table class="table">
+
+@if(cisAgenda == null){
+    <p>Loading...</p>
+}
+else
+{
+
+    <RadzenButton style="margin-bottom: 10px" Text="Přidat novou položku" Click="@InsertRow" Disabled=@(cisAgendaToInsert != null)/>
+    <RadzenDataGrid @ref="agendaGrid" AllowPaging="true" PageSize="10" AllowSorting="true" 
+        Data="@agends" TItem="CisAgenda" ColumnWidth="1300px" RowCreate="@OnCreateRow">
+        <Columns>
+
+            <RadzenDataGridColumn Title="Popis Agenda" TItem="CisAgenda" Property="PopisAgenda" Width="1000px"> </RadzenDataGridColumn>
+
+            <RadzenDataGridColumn Title="DlouhodobeAn" TItem="CisAgenda" Property="DlouhodobeAn" Width="100px" TextAlign="TextAlign.Center"> </RadzenDataGridColumn>
+
+            <RadzenDataGridColumn Title="Upravit" TItem="CisAgenda" Context="sampleBlazorModelsSampleOrder" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="120px">
+                <Template Context="cisAgenda">
+                    <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Class="m-1" Click="@(args => EditRow(cisAgenda))" @onclick:stopPropagation="true">
+                    </RadzenButton>
+                </Template>
+                <EditTemplate Context="cisAgenda">
+                    <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Primary" Class="m-1" Click="@((args) => SaveRow(cisAgenda))">
+                    </RadzenButton>
+                    <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Class="m-1" Click="@((args) => CancelEdit(cisAgenda))">
+                    </RadzenButton>
+                </EditTemplate>
+            </RadzenDataGridColumn>
+
+            <RadzenDataGridColumn Title="Smazat" TItem="CisAgenda" Context="order" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="60px">
+                <Template Context="cisAgenda">
+                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Size="ButtonSize.Small" Class="m-1" Click="@(args => DeleteRow(cisAgenda))"  @onclick:stopPropagation="true">
+                    </RadzenButton>
+                </Template>
+                <EditTemplate Context="cisAgenda">
+                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Size="ButtonSize.Small" Class="m-1" Click="@(args => DeleteRow(cisAgenda))">
+                    </RadzenButton>
+                </EditTemplate>
+            </RadzenDataGridColumn>
+
+        </Columns>
+    </RadzenDataGrid>
+}
+</table>
+
+@code{
+    RadzenDataGrid<CisAgenda> agendaGrid;
+    IEnumerable<CisAgenda> cisAgenda;
+    IList<CisAgenda> agends;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        cisAgenda = await Task.Run(()=>cisAgendaService.GetCisAgendas());
+        agends = dbContext.Agendas.ToList();
+    }
+
+    async Task EditRow(CisAgenda cisAgenda)
+    {
+        await agendaGrid.EditRow(cisAgenda);
+    }
+
+    void OnUpdateRow(CisAgenda cisAgenda)
+    {
+        if(cisAgenda == cisAgendaToInsert)
+        {
+            cisAgendaToInsert = null;
+        }
+        dbContext.Update(cisAgenda);
+        dbContext.SaveChanges();
+    }
+
+    async Task SaveRow(CisAgenda cisAgenda)
+    {
+        if(cisAgenda == cisAgendaToInsert)
+        {
+            cisAgendaToInsert = null;
+        }
+        await agendaGrid.UpdateRow(cisAgenda);
+    }
+
+    void CancelEdit(CisAgenda cisAgenda)
+    {
+        if (cisAgenda == cisAgendaToInsert)
+        {
+            cisAgendaToInsert = null;
+        }
+        agendaGrid.CancelEditRow(cisAgenda);
+
+        var cisAgendaEntry = dbContext.Entry(cisAgenda);
+        if (cisAgendaEntry.State == EntityState.Modified){
+            cisAgendaEntry.CurrentValues.SetValues(cisAgendaEntry.OriginalValues);
+            cisAgendaEntry.State = EntityState.Unchanged;
+        }
+    }
+
+    async Task DeleteRow(CisAgenda cisAgenda)
+    {
+        if(cisAgenda == cisAgendaToInsert)
+        {
+            cisAgendaToInsert = null;
+        }
+
+        if(agends.Contains(cisAgenda))
+        {
+            dbContext.Remove<CisAgenda>(cisAgenda);
+            dbContext.SaveChanges();
+            agends.Remove(cisAgenda);
+            await agendaGrid.Reload();
+        }
+        else
+        {
+            agendaGrid.CancelEditRow(cisAgenda);
+        }
+    }
+
+    CisAgenda cisAgendaToInsert;
+
+    async Task InsertRow()
+    {
+        cisAgendaToInsert = new CisAgenda();
+        cisAgendaToInsert.GidProjekt = Guid.NewGuid();
+        cisAgendaToInsert.PopisAgenda="text";
+        await agendaGrid.InsertRow(cisAgendaToInsert);
+    }
+
+    void OnCreateRow(CisAgenda cisAgenda)
+    {
+        dbContext.Add(cisAgenda);
+        dbContext.SaveChanges();
+    }
+}
