@@ -28,7 +28,6 @@ namespace TestCore
             services.AddServerSideBlazor();
             AppConfig appConfig = Configuration.GetSection("AppConfig").Get<AppConfig>();
             services.AddSingleton(appConfig);
-            services.AddScoped<CisAgendaService>();
 
             if (appConfig.Ostry)
             {

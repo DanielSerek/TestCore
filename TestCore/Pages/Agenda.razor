@@ -2,7 +2,6 @@
 @using TestCore.Models
 @using TestCore.Datalayer
 @using Microsoft.EntityFrameworkCore
-@inject CisAgendaService cisAgendaService
 @inject DBContext dbContext
 <h3>CisAgenda</h3>
 
@@ -10,13 +9,12 @@
 
 <table class="table">
 
-@if(cisAgenda == null){
+@if(cisAgendaLoad == null){
     <p>Loading...</p>
 }
 else
 {
-
-    <RadzenButton style="margin-bottom: 10px" Text="Přidat novou položku" Click="@InsertRow" Disabled=@(cisAgendaToInsert != null)/>
+    <RadzenButton style="margin-bottom: 10px" Text="Přidat novou agendu" Click="@InsertRow" Disabled=@(cisAgendaToInsert != null)/>
     <RadzenDataGrid @ref="agendaGrid" AllowPaging="true" PageSize="10" AllowSorting="true" EditMode="DataGridEditMode.Single"
         Data="@agends" TItem="CisAgenda" ColumnWidth="1300px" RowCreate="@OnCreateRow" RowUpdate="@OnUpdateRow">
         <Columns>
@@ -30,35 +28,31 @@ else
 
             <RadzenDataGridColumn Title="DlouhodobeAn" TItem="CisAgenda" Property="DlouhodobeAn" Width="100px" TextAlign="TextAlign.Center"> 
                 <Template Context="cisAgenda">
-                     <RadzenCheckBox @bind-Value="cisAgenda.DlouhodobeAn" Style="width:100%; display: block" Name="DlouhodobeAn" TValue="bool"/>
+                     <RadzenCheckBox @bind-Value="cisAgenda.DlouhodobeAn" Name="DlouhodobeAn" TValue="bool"/>
                 </Template>
                 <EditTemplate Context="cisAgenda">
-                    <RadzenCheckBox @bind-Value="cisAgenda.DlouhodobeAn" Style="width:100%; display: block" Name="DlouhodobeAn"/>
+                    <RadzenCheckBox @bind-Value="cisAgenda.DlouhodobeAn" Name="DlouhodobeAn"/>
                 </EditTemplate>
             </RadzenDataGridColumn>
 
-            <RadzenDataGridColumn Title="Upravit" TItem="CisAgenda" Context="sampleBlazorModelsSampleOrder" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="120px">
+            <RadzenDataGridColumn Title="Upravit" TItem="CisAgenda" Context="sampleBlazorModelsSampleOrder" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="100px">
                 <Template Context="cisAgenda">
-                    <RadzenButton Icon="upravit" ButtonStyle="ButtonStyle.Light" Class="m-1" Click="@(args => EditRow(cisAgenda))" @onclick:stopPropagation="true">
+                    <RadzenButton Icon="add_circle_outline" ButtonStyle="ButtonStyle.Warning" Class="m-1" Click="@(args => EditRow(cisAgenda))" @onclick:stopPropagation="true">
                     </RadzenButton>
                 </Template>
                 <EditTemplate Context="cisAgenda">
-                    <RadzenButton Icon="uložit" ButtonStyle="ButtonStyle.Primary" Class="m-1" Click="@((args) => SaveRow(cisAgenda))">
+                    <RadzenButton Icon="check_circle" ButtonStyle="ButtonStyle.Success"  Class="m-1" Click="@((args) => SaveRow(cisAgenda))">
                     </RadzenButton>
-                    <RadzenButton Icon="zavřít" ButtonStyle="ButtonStyle.Light" Class="m-1" Click="@((args) => CancelEdit(cisAgenda))">
+                    <RadzenButton Icon="report" ButtonStyle="ButtonStyle.Danger" Class="m-1" Click="@((args) => CancelEdit(cisAgenda))">
                     </RadzenButton>
                 </EditTemplate>
             </RadzenDataGridColumn>
 
-            <RadzenDataGridColumn Title="Smazat" TItem="CisAgenda" Context="order" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="60px">
+            <RadzenDataGridColumn Title="Smazat" TItem="CisAgenda" Context="order" Filterable="false" Sortable="false"  TextAlign="TextAlign.Center" Width="100px">
                 <Template Context="cisAgenda">
-                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="smazat" Size="ButtonSize.Small" Class="m-1" Click="@(args => DeleteRow(cisAgenda))"  @onclick:stopPropagation="true">
+                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="report" Class="m-1" Click="@(args => DeleteRow(cisAgenda))"  @onclick:stopPropagation="true">
                     </RadzenButton>
                 </Template>
-                <EditTemplate Context="cisAgenda">
-                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="smazat" Size="ButtonSize.Small" Class="m-1" Click="@(args => DeleteRow(cisAgenda))">
-                    </RadzenButton>
-                </EditTemplate>
             </RadzenDataGridColumn>
 
         </Columns>
@@ -68,12 +62,13 @@ else
 
 @code{
     RadzenDataGrid<CisAgenda> agendaGrid;
-    IEnumerable<CisAgenda> cisAgenda;
+    IEnumerable<CisAgenda> cisAgendaLoad;
     IList<CisAgenda> agends;
+    CisAgenda cisAgendaToInsert;
     
     protected override async Task OnInitializedAsync()
     {
-        cisAgenda = await Task.Run(()=>cisAgendaService.GetCisAgendas());
+        cisAgendaLoad = await Task.Run(()=>Task.FromResult(new List<CisAgenda>()));
         agends = dbContext.Agendas.ToList();
     }
 
@@ -136,13 +131,11 @@ else
         }
     }
 
-    CisAgenda cisAgendaToInsert;
-
     async Task InsertRow()
     {
         cisAgendaToInsert = new CisAgenda();
         cisAgendaToInsert.GidProjekt = Guid.NewGuid();
-        cisAgendaToInsert.PopisAgenda="text";
+        cisAgendaToInsert.PopisAgenda="Upravte tento text...";
         await agendaGrid.InsertRow(cisAgendaToInsert);
     }
 
