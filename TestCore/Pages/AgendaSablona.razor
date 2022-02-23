@@ -15,9 +15,7 @@
 }
 else
 {
-    var xx = cisAgendas.Select(c => c.PopisAgenda).Distinct();
-
-    <RadzenButton style="margin-bottom: 10px" Text="Přidat novou šablonu" Click="@InsertRow" Disabled=@(cisAgendaSablonaToInsert != null)/>
+    <RadzenButton style="margin-bottom: 10px" Text="Přidat novou šablonu" Click="@InsertRow"/>
     <RadzenDataGrid @ref="agendaSablonaGrid" AllowPaging="true" PageSize="10" AllowSorting="true" EditMode="DataGridEditMode.Single"
         Data="@agends" TItem="CisAgendaSablona" ColumnWidth="1300px" RowCreate="@OnCreateRow" RowUpdate="@OnUpdateRow">
         <Columns>
@@ -29,43 +27,37 @@ else
             </RadzenDataGridColumn>
 
             <RadzenDataGridColumn Title="Agenda" TItem="CisAgendaSablona" Property="GidSablona" Width="300px">
-                <EditTemplate Context="cisAgendaSablona">
-                    <RadzenDropDown AllowClear="false" TValue="string"  Class="w-100" 
-                                Data=@(cisAgendas.Select(c => c.PopisAgenda).Distinct())
-                                Change=@(args => OnChange(args, "DropDown")) />
-                </EditTemplate>                
-            </RadzenDataGridColumn>
-
-            @*<RadzenDataGridColumn Title="Popis Agenda" TItem="CisAgenda" Property="PopisAgenda" Width="1000px">
-                 <EditTemplate Context="cisAgenda">
-                    <RadzenTextBox @bind-Value="cisAgenda.PopisAgenda" Style="width:100%; display: block" Name="PopisAgenda" />
-                    <RadzenRequiredValidator Text="Text je vyžadován" Component="PopisAgenda" Popup="true" />              
-                </EditTemplate>                
-            </RadzenDataGridColumn>*@
-
-            <RadzenDataGridColumn Title="Upravit" TItem="CisAgendaSablona" Context="sampleBlazorModelsSampleOrder" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="120px">
                 <Template Context="cisAgendaSablona">
-                    <RadzenButton Icon="upravit" ButtonStyle="ButtonStyle.Light" Class="m-1" Click="@(args => EditRow(cisAgendaSablona))" @onclick:stopPropagation="true">
+                    <RadzenLabel Text="@cisAgendas.FirstOrDefault(s => s.GidProjekt == cisAgendaSablona.GidProjekt).PopisAgenda" />
+                </Template>
+                <EditTemplate Context="cisAgendaSablona">
+                    <RadzenDropDown AllowClear="false" Class="w-100" 
+                                Data="@cisAgendas" 
+                                TextProperty="PopisAgenda" ValueProperty="GidProjekt"
+                                @bind-Value="@cisAgendaSablona.GidProjekt"
+                                Change=@(c => OnChange(c))/>
+                </EditTemplate>                
+            </RadzenDataGridColumn>
+
+            <RadzenDataGridColumn Title="Upravit" TItem="CisAgendaSablona" Context="sampleBlazorModelsSampleOrder" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="100px">
+                <Template Context="cisAgendaSablona">
+                    <RadzenButton Icon="add_circle_outline" ButtonStyle="ButtonStyle.Warning" Class="m-1" Click="@(args => EditRow(cisAgendaSablona))" @onclick:stopPropagation="true">
                     </RadzenButton>
                 </Template>
                 <EditTemplate Context="cisAgendaSablona">
-                    <RadzenButton Icon="uložit" ButtonStyle="ButtonStyle.Primary" Class="m-1" Click="@((args) => SaveRow(cisAgendaSablona))">
+                    <RadzenButton Icon="check_circle" ButtonStyle="ButtonStyle.Success" Class="m-1" Click="@((args) => SaveRow(cisAgendaSablona))">
                     </RadzenButton>
-                    <RadzenButton Icon="zavřít" ButtonStyle="ButtonStyle.Light" Class="m-1" Click="@((args) => CancelEdit(cisAgendaSablona))">
+                    <RadzenButton Icon="report" ButtonStyle="ButtonStyle.Danger" Class="m-1" Click="@((args) => CancelEdit(cisAgendaSablona))">
                     </RadzenButton>
                 </EditTemplate>
             </RadzenDataGridColumn>
 
-            @*<RadzenDataGridColumn Title="Smazat" TItem="CisAgenda" Context="order" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="60px">
+            <RadzenDataGridColumn Title="Smazat" TItem="CisAgendaSablona" Context="order" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="100px">
                 <Template Context="cisAgenda">
-                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="smazat" Size="ButtonSize.Small" Class="m-1" Click="@(args => DeleteRow(cisAgenda))"  @onclick:stopPropagation="true">
+                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="report" Class="m-1" Click="@(args => DeleteRow(cisAgenda))"  @onclick:stopPropagation="true">
                     </RadzenButton>
                 </Template>
-                <EditTemplate Context="cisAgenda">
-                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="smazat" Size="ButtonSize.Small" Class="m-1" Click="@(args => DeleteRow(cisAgenda))">
-                    </RadzenButton>
-                </EditTemplate>
-            </RadzenDataGridColumn>*@
+            </RadzenDataGridColumn>
 
         </Columns>
     </RadzenDataGrid>
@@ -74,25 +66,16 @@ else
 
 @code{
     RadzenDataGrid<CisAgendaSablona> agendaSablonaGrid;
-    //RadzenDataGrid<CisAgenda> agendaGrid;
     IEnumerable<CisAgendaSablona> cisAgendaSablonaLoad;
     IEnumerable<CisAgenda> cisAgendas;
-    //IEnumerable<Object> cisAgendaSablona;
     IList<CisAgendaSablona> agends;
     CisAgendaSablona cisAgendaSablonaToInsert;
-    
-    //public static IEnumerable<T> Concatenate<T>(params IEnumerable<T>[] lists)
-    //{
-    //    return lists.SelectMany(x => x);
-    //}
+    object cisAgenda;
     
     protected override async Task OnInitializedAsync()
     {
         cisAgendaSablonaLoad = await Task.Run(()=>Task.FromResult(new List<CisAgendaSablona>()));
         cisAgendas = dbContext.Agendas.ToList();
-
-        //cisAgenda = await Task.Run(()=>Task.FromResult(new List<CisAgenda>());
-        //cisAgendaSablonaLoad = Concatenate<T>(cisAgenda, cisAgendaSablona);
         agends = dbContext.AgendaSablonas.ToList();
     }
 
@@ -117,6 +100,11 @@ else
         {
             cisAgendaSablonaToInsert = null;
         }
+        // Save into actual object
+        if( cisAgendaSablonaToInsert != null) {
+            cisAgendaSablona.GidProjekt = cisAgendaSablonaToInsert.GidProjekt;
+        }
+
         await agendaSablonaGrid.UpdateRow(cisAgendaSablona);
     }
 
@@ -168,8 +156,11 @@ else
         dbContext.SaveChanges();
     }
 
-    void OnChange(object value, string name)
+    void OnChange(Object guid)
     {
-        
+        if(cisAgendaSablonaToInsert==null){
+            cisAgendaSablonaToInsert = new CisAgendaSablona();
+        }
+        cisAgendaSablonaToInsert.GidProjekt = (Guid)guid;
     }
 }
